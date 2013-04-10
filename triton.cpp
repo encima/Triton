@@ -8,6 +8,7 @@
 #include "/usr/local/include/cvblob.h"
 
 #include "DirTraveler.h"
+#include "Triton.h"
 
 using namespace std;
 using namespace cvb;
@@ -70,11 +71,8 @@ void identifyCvBlobs(Mat *fore, string path)
             procPath << splitPath(path, true) << "/1BGMOG2/" << splitPath(path, false);
             imwrite(procPath.str(), result);
             cout << "***FOUND Interesting Image, saving as:" << procPath.str() << endl;
-            // imshow("Extracted", result);
-            // imshow("Original", *fore);
-            // cvWaitKey();
         }else{
-            printf("Image was either too busy, or empty. Nothing extracted. \n");
+            printf("Image is too busy. Nothing extracted. \n");
         }
         cvReleaseBlobs(blobs);
         cvReleaseTracks(tracks);
@@ -153,6 +151,7 @@ int main(int argc, char const *argv[])
 {
     if(argc == 2)
     {
+        // Triton tr;
         DirTraveler dt;
         vector<string> results;
         vector<string> images;
