@@ -68,7 +68,7 @@ void identifyCvBlobs(Mat *fore, string path)
             cvSetImageROI(&fg, rect);
             Mat result = &fg;
             stringstream procPath;
-            procPath << splitPath(path, true) << "/1BGMOG2/" << splitPath(path, false);
+            procPath << "\"" << splitPath(path, true) << "/1BGMOG2/" << splitPath(path, false) << "\"";
             imwrite(procPath.str(), result);
             cout << "***FOUND Interesting Image, saving as:" << procPath.str() << endl;
         }else{
@@ -97,6 +97,9 @@ void createBGMod(vector<string> *images)
             bgMod.operator()(cropped, fore);
             erode(fore, fore, Mat());
             dilate(fore, fore, Mat());
+            // cvWaitKey(0);
+        }else{
+            cout << "Frame is empty; check image?" << endl;
         }
         //Inverts and draws contours, makes finding blobs harder!
         // cv::findContours(fore, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
@@ -125,6 +128,7 @@ vector<vector<string> > sortFiles(vector<string> *files)
             // (*files) dereferences the pointer so that we can access the element within the vector.
             // We then split the string at the last instance of the delimiter, to get the path to the file.
             string path = splitPath((*files)[i], true);
+            // cout << path << endl;
             string pathPrev = splitPath((*files)[i-1], true);
             //Compare current path with the one from before, create a new vector if we are in a new directory.
             if(path == pathPrev) {
@@ -138,17 +142,21 @@ vector<vector<string> > sortFiles(vector<string> *files)
         }
     }
    //Only one dir found, add just the contents of that dir and empty the vector.
-    if(count == 0) {
+    if(count == 0 && imgs.size() > 0) {
         cout << "One directory of images found, adding now" << endl;
         imgDirs.push_back(imgs);
         imgs.clear();
-    } 
+    } else if(imgDirs.size() == 0) {
+        cout << "No images found" << endl;
+        // imgDirs.clear();
+    }
 
     return imgDirs;
 }
 
 int main(int argc, char const *argv[])
 {
+    cout << argc << endl;
     if(argc == 2)
     {
         // Triton tr;
@@ -156,6 +164,15 @@ int main(int argc, char const *argv[])
         vector<string> results;
         vector<string> images;
         dt.travelDirectoryRecursive(argv[1], &results);
+        String path = argv[1];
+        cout << path << endl;
+        int position = path.find(" ");
+        while (position != string::npos ) 
+        {
+            path.replace( position, 1, "\\" );
+            position = path.find( " ", position + 1 );
+        }     
+        cout << path << endl;
         for(int i = 0; i < results.size(); i++)
         {
             //Look for JPG extension, but ignore files in the processed folder
@@ -165,31 +182,34 @@ int main(int argc, char const *argv[])
             }
         }
         results.clear();
-
         vector<vector<string> > imgDirs = sortFiles(&images);
-        cout << imgDirs.size() << endl;
         images.clear();
 
-        for(int i = 0; i < imgDirs.size(); i++) 
-        {
-            stringstream makeProcPath;
-            makeProcPath << "mkdir " << splitPath(imgDirs[i][0], true) << "/1BGMOG2/";
-            system(makeProcPath.str().c_str());
-            cout << "Making Dir: " << makeProcPath.str() << endl;
-            for(int j = 0; j < imgDirs[i].size(); (j+=step)) 
+        if(imgDirs.size() > 0) {
+            for(int i = 0; i < imgDirs.size(); i++) 
             {
-                //Split the files into groups of step size (i.e. 3) before processing
-                vector<string>::const_iterator first = imgDirs[i].begin() + j;    
-                vector<string>::const_iterator last;
-                if((j + step) < imgDirs[i].size()) {
-                    last = imgDirs[i].begin() + (j + step);
-                } else {
-                    last = imgDirs[i].begin() + imgDirs[i].size(); 
+                stringstream makeProcPath;
+                makeProcPath << "mkdir \"" << splitPath(imgDirs[i][0], true) << "/1BGMOG2/" << "\"";
+                cout << makeProcPath.str().c_str() << endl;
+                system(makeProcPath.str().c_str());
+                for(int j = 0; j < imgDirs[i].size(); (j+=step)) 
+                {
+                    //Split the files into groups of step size (i.e. 3) before processing
+                    vector<string>::const_iterator first = imgDirs[i].begin() + j;
+                    vector<string>::const_iterator last;
+                    if((j + step) < imgDirs[i].size()) {
+                        last = imgDirs[i].begin() + (j + step);
+                    } else {
+                        last = imgDirs[i].begin() + imgDirs[i].size(); 
+                    }
+                    vector<string> subset(first, last);
+                    createBGMod(&subset);
                 }
-                vector<string> subset(first, last);
-                createBGMod(&subset);
+                cout << "-------END OF DIR-------" << endl;
             }
-            cout << "-------END OF DIR-------" << endl;
+        }else{
+            cout << "nothing to process, ending" << endl;
+            exit(0);
         }
     }
 }
