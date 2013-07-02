@@ -14,7 +14,7 @@ using namespace std;
 using namespace cvb;
 using namespace cv;
 
-int step = 3;
+int step = 2;
 
 vector<string> split(string s, char delim) 
 {
@@ -70,6 +70,8 @@ void identifyCvBlobs(Mat *fore, string path)
             stringstream procPath;
             procPath << "\"" << splitPath(path, true) << "/1BGMOG2/" << splitPath(path, false) << "\"";
             imwrite(procPath.str(), result);
+			imshow("", result);
+			cvWaitKey();
             cout << "***FOUND Interesting Image, saving as:" << procPath.str() << endl;
         }else{
             printf("Image is too busy. Nothing extracted. \n");
@@ -90,7 +92,8 @@ void createBGMod(vector<string> *images)
     for(int i = 0; i < images->size(); i++)
     {
         //load image and scale out the reconyx bars
-        frame = imread((*images)[i], CV_LOAD_IMAGE_COLOR);
+        frame = imread((*images)[i]);
+        cout << frame.empty() << endl;
         if(!frame.empty()) {
             Rect roi(0, 30, frame.size().width, (frame.size().height-60));
             cropped = frame(roi);
@@ -111,6 +114,14 @@ void createBGMod(vector<string> *images)
     contours.clear();
     bgMod.~BackgroundSubtractorMOG2();
     identifyCvBlobs(&fore, (*images)[0]);
+}
+
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
 }
 
 //Don't forget that pesky space before right caret, needs it for 2D vectors. Frick knows why.
