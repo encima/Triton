@@ -20,6 +20,7 @@ class Triton {
 		void identifyCvBlobs(Mat *fore, string path);
 		void createBGMod(vector<string> *images);
 		vector<vector<string> > sortFiles(vector<string> *files);
+		bool replace(std::string& str, const std::string& from, const std::string& to);
 	protected:
 	private:
 };

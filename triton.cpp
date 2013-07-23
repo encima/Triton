@@ -14,7 +14,7 @@ using namespace std;
 using namespace cvb;
 using namespace cv;
 
-int step = 2;
+int step = 1;
 
 vector<string> split(string s, char delim) 
 {
@@ -70,8 +70,8 @@ void identifyCvBlobs(Mat *fore, string path)
             stringstream procPath;
             procPath << "\"" << splitPath(path, true) << "/1BGMOG2/" << splitPath(path, false) << "\"";
             imwrite(procPath.str(), result);
-			imshow("", result);
-			cvWaitKey();
+			//imshow("", result);
+			//cvWaitKey();
             cout << "***FOUND Interesting Image, saving as:" << procPath.str() << endl;
         }else{
             printf("Image is too busy. Nothing extracted. \n");
