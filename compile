@@ -1,1 +1,1 @@
-g++ `pkg-config --cflags opencv cvblob` -O2 *.cpp -o compiled/proc_linux `pkg-config --libs opencv cvblob`
+g++ `pkg-config --cflags opencv cvblob` -O2 *.cpp -o compiled/proc_mac `pkg-config --libs opencv cvblob` -mmacosx-version-min=10.8

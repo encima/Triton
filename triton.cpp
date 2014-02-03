@@ -3,6 +3,8 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <cerrno>
+#include <cstring>
 
 #include "/usr/local/include/opencv2/opencv.hpp"
 #include "/usr/local/include/cvblob.h"
@@ -14,7 +16,7 @@ using namespace std;
 using namespace cvb;
 using namespace cv;
 
-int step = 1;
+int step = 2;
 
 vector<string> split(string s, char delim) 
 {
@@ -54,7 +56,7 @@ void identifyCvBlobs(Mat *fore, string path)
     //Potential memory leak, this is never released (should be resolved with the cvReleaseBlobs)
     unsigned int result = cvLabel(&fg, labelImg, blobs);
 
-    cout << "Blobs found" << blobs.size() << endl;
+    cout << "Blobs found: " << blobs.size() << endl;
     if(blobs.size() > 0) {
         CvBlob *largest = blobs[cvGreaterBlob(blobs)];
         
@@ -68,11 +70,27 @@ void identifyCvBlobs(Mat *fore, string path)
             cvSetImageROI(&fg, rect);
             Mat result = &fg;
             stringstream procPath;
-            procPath << "\"" << splitPath(path, true) << "/1BGMOG2/" << splitPath(path, false) << "\"";
-            imwrite(procPath.str(), result);
-			//imshow("", result);
-			//cvWaitKey();
-            cout << "***FOUND Interesting Image, saving as:" << procPath.str() << endl;
+            unsigned found = path.find_last_of("/");
+            procPath << path.substr(0, found) << "1BGMOG2/" << path.substr(found+1);
+            // procPath << "/Users/encima/" << splitPath(path, false);
+            cout << procPath.str().c_str() << endl;
+            IplImage finalImg = result;
+            if(!cvSaveImage(procPath.str().c_str(), &finalImg)) {
+                int error = cvGetErrStatus();
+                const char * errorMessage = 0;
+                if (error) {
+                    errorMessage = cvErrorStr(error);
+                } else {
+                    error = errno;                   // needs #include <cerrno>
+                    errorMessage = strerror(error);  //       #include <cstring>        
+                }
+                std::cout << errorMessage << std::endl;  
+            }else{
+                cout << "***FOUND Interesting Image, saving as:" << procPath.str() << endl;    
+            }
+            // imwrite(procPath.str(), result);
+			// imshow("", result);
+			// cvWaitKey();
         }else{
             printf("Image is too busy. Nothing extracted. \n");
         }
