@@ -71,7 +71,7 @@ void identifyCvBlobs(Mat *fore, string path)
             Mat result = &fg;
             stringstream procPath;
             unsigned found = path.find_last_of("/");
-            procPath << path.substr(0, found) << "1BGMOG2/" << path.substr(found+1);
+            procPath << path.substr(0, found) << "/1BGMOG2/" << path.substr(found+1);
             // procPath << "/Users/encima/" << splitPath(path, false);
             cout << procPath.str().c_str() << endl;
             IplImage finalImg = result;
